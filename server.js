@@ -9,9 +9,26 @@ const client = new Client({
   port: 5432,
 });
 
+<<<<<<< HEAD
 const app = express();
 app.use(express.json());
 const port = 3000;
+=======
+<<<<<<< HEAD
+
+=======
+app.get('/api/employees', (req, res) => {
+    client.query('SELECT * FROM employees', (err, result) => {
+        if (err) {
+            console.error(err)
+            res.status(500).send('Error executing query')
+        } else {
+            res.json(result.rows)
+        }
+    })
+})
+>>>>>>> ab16ec9 (finished routes)
+>>>>>>> a1742669b975b7ef7f4c4619d64bfa7e231335f1
 
 app.get("/api/customers", async (req, res) => {
   try {
