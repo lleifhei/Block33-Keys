@@ -1,6 +1,5 @@
 const express = require("express");
 const { Client } = require("pg");
-const { Pool } = require("pg");
 const client = new Client({
   user: "",
   host: "localhost",
@@ -9,30 +8,13 @@ const client = new Client({
   port: 5432,
 });
 
-<<<<<<< HEAD
 const app = express();
 app.use(express.json());
 const port = 3000;
-=======
-<<<<<<< HEAD
-
-=======
-app.get('/api/employees', (req, res) => {
-    client.query('SELECT * FROM employees', (err, result) => {
-        if (err) {
-            console.error(err)
-            res.status(500).send('Error executing query')
-        } else {
-            res.json(result.rows)
-        }
-    })
-})
->>>>>>> ab16ec9 (finished routes)
->>>>>>> a1742669b975b7ef7f4c4619d64bfa7e231335f1
 
 app.get("/api/customers", async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM customers ORDER BY id");
+    const { rows } = await client.query("SELECT * FROM customers ORDER BY id");
 
     res.json({
       success: true,
@@ -50,7 +32,9 @@ app.get("/api/customers", async (req, res) => {
 
 app.get("/api/restaurants", async (req, res) => {
   try {
-    const { rows } = await pool.query("SELECT * FROM restaurants ORDER BY id");
+    const { rows } = await client.query(
+      "SELECT * FROM restaurants ORDER BY id"
+    );
 
     res.json({
       success: true,
@@ -68,7 +52,7 @@ app.get("/api/restaurants", async (req, res) => {
 
 app.get("/api/reservations", async (req, res) => {
   try {
-    const { rows } = await pool.query(`
+    const { rows } = await client.query(`
         SELECT 
           r.id, 
           r.date, 
@@ -106,7 +90,6 @@ app.post("/api/customers/:id/reservations", async (req, res) => {
     const { id: customer_id } = req.params;
     const { restaurant_id, date, party_count } = req.body;
 
-    // Validate required fields
     if (!restaurant_id || !date || !party_count) {
       return res.status(400).json({
         success: false,
@@ -114,7 +97,6 @@ app.post("/api/customers/:id/reservations", async (req, res) => {
       });
     }
 
-    // Validate that party_count is a positive integer
     if (!Number.isInteger(party_count) || party_count <= 0) {
       return res.status(400).json({
         success: false,
@@ -122,8 +104,7 @@ app.post("/api/customers/:id/reservations", async (req, res) => {
       });
     }
 
-    // Check if customer exists
-    const customerCheck = await pool.query(
+    const customerCheck = await client.query(
       "SELECT * FROM customers WHERE id = $1",
       [customer_id]
     );
@@ -135,7 +116,7 @@ app.post("/api/customers/:id/reservations", async (req, res) => {
       });
     }
 
-    const restaurantCheck = await pool.query(
+    const restaurantCheck = await client.query(
       "SELECT * FROM restaurants WHERE id = $1",
       [restaurant_id]
     );
@@ -147,7 +128,7 @@ app.post("/api/customers/:id/reservations", async (req, res) => {
       });
     }
 
-    const newReservation = await pool.query(
+    const newReservation = await client.query(
       `INSERT INTO reservations 
           (customer_id, restaurant_id, date, party_count) 
          VALUES ($1, $2, $3, $4) 
@@ -155,7 +136,7 @@ app.post("/api/customers/:id/reservations", async (req, res) => {
       [customer_id, restaurant_id, date, party_count]
     );
 
-    const { rows } = await pool.query(
+    const { rows } = await client.query(
       `SELECT 
           r.id, 
           r.date, 
@@ -192,8 +173,7 @@ app.delete("/api/customers/:customer_id/reservations/:id", async (req, res) => {
   try {
     const { customer_id, id: reservation_id } = req.params;
 
-    // Check if reservation exists and belongs to the specified customer
-    const reservationCheck = await pool.query(
+    const reservationCheck = await client.query(
       "SELECT * FROM reservations WHERE id = $1 AND customer_id = $2",
       [reservation_id, customer_id]
     );
@@ -205,12 +185,10 @@ app.delete("/api/customers/:customer_id/reservations/:id", async (req, res) => {
       });
     }
 
-    // Delete the reservation
-    await pool.query("DELETE FROM reservations WHERE id = $1", [
+    await client.query("DELETE FROM reservations WHERE id = $1", [
       reservation_id,
     ]);
 
-    // Return 204 No Content status with no response body
     res.status(204).end();
   } catch (error) {
     console.error("Error deleting reservation:", error);
